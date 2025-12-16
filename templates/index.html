@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Next/Upcoming Tasks Column -->
+    <section class="task-column upcoming-column">
+        <div class="column-header">
+            <h2>Next Tasks</h2>
+            <span class="task-count">{{ upcoming|length }}</span>
+        </div>
+
+        <div class="add-task-form">
+            <input type="text" id="new-task-title" placeholder="What needs to be done?" required>
+            <input type="date" id="new-task-date" required>
+            <button id="add-task-btn">+</button>
+        </div>
+
+        <div class="task-list" id="upcoming-list">
+            {% for task in upcoming %}
+            <div class="task-card" data-id="{{ task.id }}">
+                <div class="task-info">
+                    <span class="task-title">{{ task.title }}</span>
+                    <span class="task-date">{{ task.due_date }}</span>
+                </div>
+                <button class="complete-btn" onclick="toggleTask({{ task.id }})">
+                    <span class="check-icon">✓</span>
+                </button>
+            </div>
+            {% endfor %}
+            {% if not upcoming %}
+            <div class="empty-state">No upcoming tasks.</div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Previous/Overdue Tasks Column -->
+    <section class="task-column previous-column">
+        <div class="column-header">
+            <h2>Previous Tasks</h2>
+            <span class="task-count">{{ previous|length }}</span>
+        </div>
+
+        <div class="task-list" id="previous-list">
+            {% for task in previous %}
+            <div class="task-card overdue" data-id="{{ task.id }}">
+                <div class="task-info">
+                    <span class="task-title">{{ task.title }}</span>
+                    <span class="task-date">{{ task.due_date }}</span>
+                </div>
+                <button class="complete-btn" onclick="toggleTask({{ task.id }})">
+                    <span class="check-icon">✓</span>
+                </button>
+            </div>
+            {% endfor %}
+            {% if not previous %}
+            <div class="empty-state">No overdue tasks. Great job!</div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}

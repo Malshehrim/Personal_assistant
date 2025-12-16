@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="completed-container">
+    <div class="column-header">
+        <h2>Completed Tasks</h2>
+        <span class="task-count">{{ completed|length }}</span>
+    </div>
+
+    <div class="task-list completed-list">
+        {% for task in completed %}
+        <div class="task-card completed-card" data-id="{{ task.id }}">
+            <div class="task-info">
+                <span class="task-title">{{ task.title }}</span>
+                <span class="task-date">Done</span>
+            </div>
+            <button class="complete-btn undo-btn" onclick="toggleTask({{ task.id }})">
+                <span class="check-icon">↩</span>
+            </button>
+        </div>
+        {% endfor %}
+        {% if not completed %}
+        <div class="empty-state">No completed tasks yet.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
