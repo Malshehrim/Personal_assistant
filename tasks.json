@@ -1,3 +1,10 @@
 [
-   
+    {
+        "id": 1,
+        "title": "Clean the room",
+        "description": "",
+        "due_date": "2025-12-18",
+        "status": "pending",
+        "created_at": "2025-12-17T18:43:42.024246"
+    }
 ]
