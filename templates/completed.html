@@ -1,27 +1,35 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="completed-container">
-    <div class="column-header">
-        <h2>Completed Tasks</h2>
-        <span class="task-count">{{ completed|length }}</span>
-    </div>
+<div class="dashboard-container">
 
-    <div class="task-list completed-list">
-        {% for task in completed %}
-        <div class="task-card completed-card" data-id="{{ task.id }}">
-            <div class="task-info">
-                <span class="task-title">{{ task.title }}</span>
-                <span class="task-date">Done</span>
-            </div>
-            <button class="complete-btn undo-btn" onclick="toggleTask({{ task.id }})">
-                <span class="check-icon">↩</span>
-            </button>
+    <section class="tasks-section completed-section">
+        <div class="section-header">
+            <h3>الأرشيف: المهام المنجزة</h3>
+            <span class="count-badge count-green">{{ completed|length }}</span>
         </div>
-        {% endfor %}
-        {% if not completed %}
-        <div class="empty-state">No completed tasks yet.</div>
-        {% endif %}
-    </div>
+
+        <div class="tasks-list">
+            {% for task in completed %}
+            <div class="task-card card-dimmed">
+                <div class="task-info">
+                    <span class="task-title">{{ task.title }}</span>
+                    <span class="task-date">تم الإنجاز</span>
+                </div>
+                <!-- Form to Undo -->
+                <form action="/toggle_task/{{ task.id }}" method="POST">
+                    <button type="submit" class="btn-undo" title="إعادة للمهام">↩</button>
+                </form>
+            </div>
+            {% else %}
+            <p class="empty-msg">لم تنجز أي مهام بعد.</p>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/" class="back-link">← العودة للوحة المهام</a>
+        </div>
+    </section>
+
 </div>
 {% endblock %}

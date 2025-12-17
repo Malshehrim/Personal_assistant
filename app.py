@@ -1,70 +1,138 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, redirect, url_for
 from data_manager import add_task, toggle_task, get_tasks_by_type, load_tasks
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
 
+# ==========================================
+# 🚀 APP SETUP
+# ==========================================
+
+# 1. Load secret variables (like API keys) from .env file
 load_dotenv()
 
+# 2. Initialize Flask App
 app = Flask(__name__)
 
-# Configure Gemini
+# --- AI Configuration (Gemini) ---
 api_key = os.getenv("GEMINI_API_KEY")
+model = None
+
+# Check if API Key exists
 if api_key:
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-pro')
 else:
-    model = None
-    print("WARNING: GEMINI_API_KEY not found in environment variables.")
+    print("⚠️ WARNING: Gemini API Key not found. AI features will not work.")
 
-# Strict System Instruction
+# This is the 'System Instruction' - The brain of our AI
 SYSTEM_INSTRUCTION = """
-You are a strict, professional AI Task Assistant. 
-Your ONLY purpose is to help the user manage their tasks based on the provided JSON data.
-You must REFUSE nicely but firmly to answer any questions unrelated to the user's tasks or task management.
-If the user asks "Tell me a joke", "What is the weather", or generates code unrelated to this app, you must say:
-"I am sorry, I can only assist you with your tasks and productivity."
-When analyzing tasks, be concise, direct, and professional.
+You are a helpful and strict Task Assistant.
+Your job is to manage the user's tasks.
+Only answer questions about the tasks provided in the context.
+If asked about off-topic things (jokes, weather, etc.), politely refuse.
+Keep answers short and clear.
 """
+
+# ==========================================
+# 🌐 ROUTES (Pages)
+# ==========================================
 
 @app.route('/')
 def index():
-    tasks = get_tasks_by_type()
-    return render_template('index.html', upcoming=tasks['upcoming'], previous=tasks['previous'])
+    """
+    The Home Page (Dashboard).
+    Displays Upcoming and Previous tasks.
+    """
+    # Get sorted tasks
+    all_tasks = get_tasks_by_type()
+    
+    # Check if there is an AI answer to show
+    ai_response = request.args.get('ai_response') 
+    
+    # Send data to HTML template
+    return render_template('index.html', 
+                         upcoming=all_tasks['upcoming'], 
+                         previous=all_tasks['previous'],
+                         ai_response=ai_response)
 
 @app.route('/completed')
 def completed():
-    tasks = get_tasks_by_type()
-    return render_template('completed.html', completed=tasks['completed'])
+    """
+    The Completed Tasks Page.
+    """
+    all_tasks = get_tasks_by_type()
+    return render_template('completed.html', completed=all_tasks['completed'])
 
-@app.route('/api/add_task', methods=['POST'])
-def api_add_task():
-    data = request.json
-    add_task(data['title'], data.get('description', ''), data['due_date'])
-    return jsonify({'success': True})
+# ==========================================
+# ⚡ ACTIONS (Form Handling)
+# ==========================================
 
-@app.route('/api/toggle_task', methods=['POST'])
-def api_toggle_task():
-    data = request.json
-    toggle_task(data['id'])
-    return jsonify({'success': True})
+@app.route('/add_task', methods=['POST'])
+def handle_add_task():
+    """
+    Handles adding a new task from the form.
+    """
+    # Get data from HTML form inputs
+    title = request.form.get('title')
+    due_date = request.form.get('due_date')
+    
+    # Add to database (JSON file)
+    if title and due_date:
+        add_task(title, "", due_date)
+        
+    # Redirect back to home page
+    return redirect(url_for('index'))
 
-@app.route('/api/ai_chat', methods=['POST'])
-def api_ai_chat():
+@app.route('/toggle_task/<int:task_id>', methods=['POST'])
+def handle_toggle_task(task_id):
+    """
+    Marks a task as complete or incomplete.
+    """
+    toggle_task(task_id)
+    
+    # Return user to the page they came from
+    referrer = request.referrer
+    if referrer and 'completed' in referrer:
+        return redirect(url_for('completed'))
+    
+    return redirect(url_for('index'))
+
+@app.route('/ask_ai', methods=['POST'])
+def handle_ask_ai():
+    """
+    Sends the user's question to Gemini AI.
+    """
     if not model:
-        return jsonify({'response': "AI functionality is not available (Missing API Key)."})
+        return redirect(url_for('index', ai_response="Error: AI Key missing."))
+        
+    user_question = request.form.get('question')
     
-    user_message = request.json.get('message', '')
-    tasks = load_tasks()
+    # 1. Get current tasks
+    current_tasks = load_tasks()
     
-    # Construct context
-    context = f"{SYSTEM_INSTRUCTION}\n\nCurrent Tasks Context:\n{tasks}\n\nUser Question: {user_message}"
+    # 2. Build the full prompt (Instructions + Data + Question)
+    full_prompt = f"""
+    {SYSTEM_INSTRUCTION}
+    
+    Current User Tasks (JSON):
+    {current_tasks}
+    
+    User Question: {user_question}
+    """
     
     try:
-        response = model.generate_content(context)
-        return jsonify({'response': response.text})
+        # 3. Generate response
+        response = model.generate_content(full_prompt)
+        answer = response.text
     except Exception as e:
-        return jsonify({'response': f"AI Error: {str(e)}"})
+        answer = "Sorry, I couldn't reach the AI server."
 
+    # 4. Reload page with the answer
+    return redirect(url_for('index', ai_response=answer))
+
+# ==========================================
+# ▶️ RUN THE APP
+# ==========================================
 if __name__ == '__main__':
     app.run(debug=True)

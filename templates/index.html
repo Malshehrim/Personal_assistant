@@ -1,61 +1,83 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="dashboard-grid">
-    <!-- Next/Upcoming Tasks Column -->
-    <section class="task-column upcoming-column">
-        <div class="column-header">
-            <h2>Next Tasks</h2>
-            <span class="task-count">{{ upcoming|length }}</span>
+<div class="dashboard-container">
+
+    <!-- 1️⃣ Add New Task Section (Top) -->
+    <section class="add-task-section">
+        <h2>اضافة مهمة جديدة</h2>
+        <form action="/add_task" method="POST" class="simple-form">
+            <input type="text" name="title" placeholder="ماذا تريد أن تنجز؟" required>
+            <input type="date" name="due_date" required>
+            <button type="submit" class="btn-add">+</button>
+        </form>
+    </section>
+
+    <!-- 2️⃣ Upcoming Tasks Section (Middle) -->
+    <section class="tasks-section upcoming">
+        <div class="section-header">
+            <h3>المهام القادمة</h3>
+            <span class="count-badge">{{ upcoming|length }}</span>
         </div>
 
-        <div class="add-task-form">
-            <input type="text" id="new-task-title" placeholder="What needs to be done?" required>
-            <input type="date" id="new-task-date" required>
-            <button id="add-task-btn">+</button>
-        </div>
-
-        <div class="task-list" id="upcoming-list">
+        <div class="tasks-list">
             {% for task in upcoming %}
-            <div class="task-card" data-id="{{ task.id }}">
+            <div class="task-card">
                 <div class="task-info">
                     <span class="task-title">{{ task.title }}</span>
                     <span class="task-date">{{ task.due_date }}</span>
                 </div>
-                <button class="complete-btn" onclick="toggleTask({{ task.id }})">
-                    <span class="check-icon">✓</span>
-                </button>
+                <!-- Form to mark as complete -->
+                <form action="/toggle_task/{{ task.id }}" method="POST">
+                    <button type="submit" class="btn-check" title="إنجاز المهمة">✓</button>
+                </form>
             </div>
+            {% else %}
+            <p class="empty-msg">لا توجد مهام قادمة.</p>
             {% endfor %}
-            {% if not upcoming %}
-            <div class="empty-state">No upcoming tasks.</div>
-            {% endif %}
         </div>
     </section>
 
-    <!-- Previous/Overdue Tasks Column -->
-    <section class="task-column previous-column">
-        <div class="column-header">
-            <h2>Previous Tasks</h2>
-            <span class="task-count">{{ previous|length }}</span>
+    <!-- 3️⃣ Previous Tasks Section (Bottom) -->
+    <section class="tasks-section previous">
+        <div class="section-header">
+            <h3>المهام السابقة / الفائتة</h3>
+            <span class="count-badge count-red">{{ previous|length }}</span>
         </div>
 
-        <div class="task-list" id="previous-list">
+        <div class="tasks-list">
             {% for task in previous %}
-            <div class="task-card overdue" data-id="{{ task.id }}">
+            <div class="task-card card-red">
                 <div class="task-info">
                     <span class="task-title">{{ task.title }}</span>
                     <span class="task-date">{{ task.due_date }}</span>
                 </div>
-                <button class="complete-btn" onclick="toggleTask({{ task.id }})">
-                    <span class="check-icon">✓</span>
-                </button>
+                <form action="/toggle_task/{{ task.id }}" method="POST">
+                    <button type="submit" class="btn-check">✓</button>
+                </form>
             </div>
+            {% else %}
+            <p class="empty-msg">سجل نظيف! لا توجد مهام متأخرة.</p>
             {% endfor %}
-            {% if not previous %}
-            <div class="empty-state">No overdue tasks. Great job!</div>
-            {% endif %}
         </div>
     </section>
+
+    <!-- 4️⃣ AI Assistant (Footer) -->
+    <section class="ai-section">
+        <h3>المساعد الذكي 🤖</h3>
+        
+        <!-- Show Answer if available -->
+        {% if ai_response %}
+        <div class="ai-answer-box">
+            <p><strong>المساعد:</strong> {{ ai_response }}</p>
+        </div>
+        {% endif %}
+
+        <form action="/ask_ai" method="POST" class="simple-form ai-form">
+            <input type="text" name="question" placeholder="اسأل المساعد عن مهامك..." required>
+            <button type="submit" class="btn-ai">إرسال</button>
+        </form>
+    </section>
+
 </div>
 {% endblock %}

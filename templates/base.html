@@ -1,57 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Task Manager</title>
-    <!-- Google Fonts for Premium Feel -->
+    <title>مدير المهام الذكي</title>
+    <!-- خط عربي جميل من Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- Placeholder for icons, relying on CSS for now if this fails -->
 </head>
+
 <body>
-    <div class="app-container">
-        <header>
+
+    <header class="main-header">
+        <div class="container header-content">
             <div class="logo">
-                <span class="logo-icon">✨</span>
+                <span class="icon">✨</span>
                 <h1>TaskCore AI</h1>
             </div>
             <nav>
-                <a href="/" class="{{ 'active' if request.path == '/' else '' }}">Dashboard</a>
-                <a href="/completed" class="{{ 'active' if request.path == '/completed' else '' }}">Completed</a>
+                <a href="/" class="{{ 'active' if request.path == '/' else '' }}">المهام</a>
+                <a href="/completed" class="{{ 'active' if request.path == '/completed' else '' }}">الأرشيف</a>
             </nav>
-        </header>
-
-        <main>
-            {% block content %}{% endblock %}
-        </main>
-
-        <!-- AI Assistant Widget -->
-        <div id="ai-widget-container">
-            <button id="ai-toggle-btn">
-                <span class="icon">🤖</span>
-                <span class="text">AI Assistant</span>
-            </button>
-            <div id="ai-chat-window" class="hidden">
-                <div class="ai-header">
-                    <h3>Assistant</h3>
-                    <button id="ai-close-btn">&times;</button>
-                </div>
-                <div id="ai-messages">
-                    <div class="message ai-message">
-                        Hello. I am here to assist with your tasks.
-                    </div>
-                </div>
-                <div class="ai-input-area">
-                    <input type="text" id="ai-input" placeholder="Ask about your tasks...">
-                    <button id="ai-send-btn">Send</button>
-                </div>
-            </div>
         </div>
-    </div>
-    
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="main-footer">
+        <p>تم التصميم للتعلم والبساطة ❤️</p>
+    </footer>
+
 </body>
+
 </html>
